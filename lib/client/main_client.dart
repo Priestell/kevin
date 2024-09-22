@@ -90,7 +90,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget page1() {
+  Widget page1()
+  {
     return const CommandesList();
   }
 

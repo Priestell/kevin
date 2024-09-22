@@ -11,13 +11,13 @@ class CommandeForm extends StatefulWidget {
 class _CommandeFormState extends State<CommandeForm> {
   // Controllers to capture user input
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _adresseDepartController = TextEditingController();
+  final TextEditingController _horaireDepartController = TextEditingController();
+  final TextEditingController _adresseLivraisonController = TextEditingController();
+  final TextEditingController _horaireLivraisonController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
   final TextEditingController _tarifController = TextEditingController();
-  final TextEditingController _adresseController = TextEditingController();
-
-
 
   // Database helper instance
   final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
@@ -26,15 +26,18 @@ class _CommandeFormState extends State<CommandeForm> {
   Future<void> _addCommande() async {
     // Get input values
     String title = _titleController.text;
-    String date = _dateController.text;
+    String adresseDepart = _adresseDepartController.text;
+    String horaireDepart = _horaireDepartController.text;
+    String adresseLivraison = _adresseLivraisonController.text;
+    String horaireLivraison = _horaireLivraisonController.text;
     String description = _descriptionController.text;
+    String contact = _contactController.text;
     String tarif = _tarifController.text;
-    String adresse = _adresseController.text;
 
     // Validate input
-    if (title.isEmpty || date.isEmpty || description.isEmpty || tarif.isEmpty || adresse.isEmpty) {
+    if (title.isEmpty || adresseDepart.isEmpty || horaireDepart.isEmpty || adresseLivraison.isEmpty || horaireLivraison.isEmpty || contact.isEmpty || tarif.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+        const SnackBar(content: Text('Veuillez remplir tous les champs obligatoires')),
       );
       return;
     }
@@ -50,21 +53,22 @@ class _CommandeFormState extends State<CommandeForm> {
       return;
     }
 
-
     try {
       await _databaseHelper.insertCommande(
-        title, // 'intitule' field
-        date,  // 'date' field
+        title, // 'intitule' field// Empty string for date, since it's removed
         description, // 'description' field
         'A pourvoir', // 'statut' field - default status
         1, // 'clientId' - use a valid client ID here
         tarifValue, // Pass the tarif value as double
-        adresse, // Pass the address as a positional argument
-        // Optional fields: provide null or actual values if you have them
+        adresseDepart,
+        horaireDepart,
+        adresseLivraison,
+        horaireLivraison,
+        description,
+        contact,
         prestataireId: null,
         livreurId: null,
       );
-
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,10 +77,13 @@ class _CommandeFormState extends State<CommandeForm> {
 
       // Clear the form fields
       _titleController.clear();
-      _dateController.clear();
+      _adresseDepartController.clear();
+      _horaireDepartController.clear();
+      _adresseLivraisonController.clear();
+      _horaireLivraisonController.clear();
       _descriptionController.clear();
+      _contactController.clear();
       _tarifController.clear();
-      _adresseController.clear();
     } catch (e) {
       // Handle any errors
       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,7 +92,6 @@ class _CommandeFormState extends State<CommandeForm> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,38 +99,134 @@ class _CommandeFormState extends State<CommandeForm> {
         padding: const EdgeInsets.all(16.0), // Adding some padding around the list
         children: [
           // Command Title
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Intitulé de la commande',
-              border: OutlineInputBorder(),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white, // Background color
+              borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3), // Lighter shadow color
+                  spreadRadius: 1, // Reduced spread
+                  blurRadius: 4, // Softer blur
+                  offset: const Offset(0, 2), // Slightly lower offset
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Intitulé de la commande',
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
           const SizedBox(height: 16.0),
 
-          // Date and Time on the same line
+          // 2x2 Grid for Address and Time
           Row(
             children: [
-              // Date
+              // First Column
               Flexible(
-                child: TextField(
-                  controller: _dateController,
-                  decoration: const InputDecoration(
-                    labelText: 'Date',
-                    border: OutlineInputBorder(),
-                  ),
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _adresseDepartController,
+                        decoration: const InputDecoration(
+                          labelText: 'Adresse de départ',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _horaireDepartController,
+                        decoration: const InputDecoration(
+                          labelText: 'Horaire de départ',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.datetime,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 16.0), // Spacing between date and time fields
+              const SizedBox(width: 16.0), // Space between columns
 
-              // Time
+              // Second Column
               Flexible(
-                child: TextField(
-                  controller: _timeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Heure',
-                    border: OutlineInputBorder(),
-                  ),
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _adresseLivraisonController,
+                        decoration: const InputDecoration(
+                          labelText: 'Adresse de livraison',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _horaireLivraisonController,
+                        decoration: const InputDecoration(
+                          labelText: 'Horaire souhaité pour la livraison',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.datetime,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -132,35 +234,89 @@ class _CommandeFormState extends State<CommandeForm> {
           const SizedBox(height: 16.0),
 
           // Description
-          TextField(
-            controller: _descriptionController,
-            maxLines: 4, // Set to more lines for a longer input
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              border: OutlineInputBorder(),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _descriptionController,
+              maxLines: 4, // Set to more lines for a longer input
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
           const SizedBox(height: 16.0),
 
-          // Tarif
-          TextField(
-            controller: _tarifController,
-            decoration: const InputDecoration(
-              labelText: 'Tarif',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number, // Numeric input
+          // 1x1 Grid for Contact and Tarif
+          Row(
+            children: [
+              // Contact
+              Flexible(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _contactController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contact',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16.0), // Space between contact and tarif
+
+              // Tarif
+              Flexible(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _tarifController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tarif',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number, // Numeric input
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24.0),
 
-          TextField(
-            controller: _adresseController,
-            decoration: const InputDecoration(
-              labelText: 'Adresse de livraison',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 24.0,),
           // Submit Button
           SizedBox(
             width: double.infinity, // Full width button
@@ -178,11 +334,13 @@ class _CommandeFormState extends State<CommandeForm> {
   void dispose() {
     // Dispose of the controllers when the form is disposed
     _titleController.dispose();
-    _dateController.dispose();
-    _timeController.dispose();
+    _adresseDepartController.dispose();
+    _horaireDepartController.dispose();
+    _adresseLivraisonController.dispose();
+    _horaireLivraisonController.dispose();
     _descriptionController.dispose();
+    _contactController.dispose();
     _tarifController.dispose();
-    _adresseController.dispose();
     super.dispose();
   }
 }

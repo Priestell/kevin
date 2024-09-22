@@ -28,20 +28,25 @@ class DatabaseHelper {
     // Création des tables
     await db.execute('''
     CREATE TABLE commande (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      intitule TEXT NOT NULL,
-      date TEXT NOT NULL,
-      description TEXT NOT NULL,
-      adresse TEXT NOT NULL, -- New 'adresse' field
-      statut TEXT NOT NULL,
-      client_id INTEGER NOT NULL,
-      prestataire_id INTEGER,
-      livreur_id INTEGER,
-      tarif REAL NOT NULL,
-      FOREIGN KEY (client_id) REFERENCES client (id),
-      FOREIGN KEY (prestataire_id) REFERENCES prestataire (id),
-      FOREIGN KEY (livreur_id) REFERENCES livreur (id)
-    )
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  intitule TEXT NOT NULL,
+  description TEXT NOT NULL,
+  adresse_depart TEXT NOT NULL,
+  horaire_depart TEXT NOT NULL,
+  adresse_livraison TEXT NOT NULL,
+  horaire_livraison TEXT NOT NULL,
+  details_livraison TEXT,
+  contact TEXT,
+  statut TEXT NOT NULL,
+  client_id INTEGER NOT NULL,
+  prestataire_id INTEGER,
+  livreur_id INTEGER,
+  tarif REAL NOT NULL,
+  FOREIGN KEY (client_id) REFERENCES client (id),
+  FOREIGN KEY (prestataire_id) REFERENCES prestataire (id),
+  FOREIGN KEY (livreur_id) REFERENCES livreur (id)
+)
+
   ''');
     await db.execute('''
 CREATE TABLE prestataire (
@@ -149,13 +154,18 @@ CREATE TABLE prestataire (
 
   Future<void> insertCommande(
       String intitule,
-      String date,
       String description,
       String statut,
       int clientId,
-      double tarif, // Add tarif parameter
-      String adresse, // Add adresse parameter
-          {int? prestataireId, int? livreurId}) async {
+      double tarif,
+      String adresseDepart,
+      String horaireDepart,
+      String adresseLivraison,
+      String horaireLivraison,
+      String detailsLivraison,
+      String contact,
+      {int? prestataireId, int? livreurId}
+      ) async {
     final db = await instance.database;
 
     try {
@@ -163,12 +173,16 @@ CREATE TABLE prestataire (
         'commande',
         {
           'intitule': intitule,
-          'date': date,
           'description': description,
-          'adresse': adresse, // Include adresse in the insert data
+          'adresse_depart': adresseDepart,
+          'horaire_depart': horaireDepart,
+          'adresse_livraison': adresseLivraison,
+          'horaire_livraison': horaireLivraison,
+          'details_livraison': detailsLivraison,
+          'contact': contact,
           'statut': statut,
           'client_id': clientId,
-          'tarif': tarif, // Include tarif in the insert data
+          'tarif': tarif,
           'prestataire_id': prestataireId,
           'livreur_id': livreurId,
         },
@@ -178,6 +192,7 @@ CREATE TABLE prestataire (
       throw Exception('Insertion failed: $e');
     }
   }
+
 
 
 
