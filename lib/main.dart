@@ -25,58 +25,124 @@ Future<void> _configureAmplify() async {
   }
 }
 
-Future<void> _fetchAuthSession() async {
-  final authSession = await Amplify.Auth.fetchAuthSession();
-  print(authSession);
-}
-
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Authenticator(
       child: MaterialApp(
         builder: Authenticator.builder(),
-        home:  Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SignOutButton(),
-                const Text('TODO Application'),
-                ElevatedButton(onPressed: () {fetchCognitoAuthSession();}, child: const Text("Salut"))
-              ],
-            ),
-          ),
-        ),
+        home: const HomePage(),
       ),
     );
+  }
+}
+
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Appelle fetchCognitoAuthSession dès que l'utilisateur est authentifié
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthenticationStatus();
+    });
+  }
+
+  Future<void> _checkAuthenticationStatus() async {
+    // Vérifie si l'utilisateur est connecté et redirige automatiquement
+    bool isSignedIn = await Amplify.Auth.fetchAuthSession().then((session) => session.isSignedIn);
+    if (isSignedIn) {
+      fetchCognitoAuthSession(context);
+    }
   }
 
   List<dynamic> decodeAccessToken(Map<String, dynamic> jsonData) {
     if (jsonData.containsKey('value') && jsonData['value'].containsKey('accessToken')) {
       String accessToken = jsonData['value']['accessToken'];
       Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-      List<dynamic> userId = decodedToken['cognito:groups'];
-      return userId;
+      List<dynamic> userGroups = decodedToken['cognito:groups'];
+      return userGroups;
     } else {
-      print('AccessToken non trouvé dans le JSON.');
-      return [{}];
+      return [];
     }
   }
-  Future<void> fetchCognitoAuthSession() async {
+
+  Future<void> fetchCognitoAuthSession(BuildContext context) async {
     try {
       final cognitoPlugin = Amplify.Auth.getPlugin(AmplifyAuthCognito.pluginKey);
       final result = await cognitoPlugin.fetchAuthSession();
       var test = result.userPoolTokensResult.toJson();
 
-      print(decodeAccessToken(test));
+      List<dynamic> userGroups = decodeAccessToken(test);
+
+      if (userGroups.contains('livreur')) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LivreurPage()),
+        );
+      } else if (userGroups.contains('admin')) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminPage()),
+        );
+      } else {
+      }
     } on AuthException catch (e) {
       safePrint('Error retrieving auth session: ${e.message}');
     } catch (e) {
-      print('Erreur inattendue: $e');
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class LivreurPage extends StatelessWidget {
+  const LivreurPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Page Livreur')),
+      body: const Center(
+        child: Text('Bienvenue sur la page Livreur!'),
+      ),
+    );
+  }
+}
+
+
+class AdminPage extends StatelessWidget {
+  const AdminPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Page Admin')),
+      body: const Center(
+        child: Text('Bienvenue sur la page Admin!'),
+      ),
+    );
+  }
 }
