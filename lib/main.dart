@@ -3,6 +3,7 @@ import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'admin/dashboard.dart';
 import 'amplify_outputs.dart';
 
 Future<void> main() async {
@@ -25,6 +26,15 @@ Future<void> _configureAmplify() async {
   }
 }
 
+Future<void> signOutCurrentUser() async {
+  final result = await Amplify.Auth.signOut();
+  if (result is CognitoCompleteSignOut) {
+    safePrint('Sign out completed successfully');
+  } else if (result is CognitoFailedSignOut) {
+    safePrint('Error signing user out: ${result.exception.message}');
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -39,7 +49,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
+// HomePage avec StatefulWidget pour gérer la navigation automatique après connexion
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -47,11 +57,20 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  bool _isLoading = true;
+  AnimationController? _controller;
+  Animation<double>? _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
-    // Appelle fetchCognitoAuthSession dès que l'utilisateur est authentifié
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnimation = CurvedAnimation(parent: _controller!, curve: Curves.easeIn);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAuthenticationStatus();
     });
@@ -61,7 +80,11 @@ class _HomePageState extends State<HomePage> {
     // Vérifie si l'utilisateur est connecté et redirige automatiquement
     bool isSignedIn = await Amplify.Auth.fetchAuthSession().then((session) => session.isSignedIn);
     if (isSignedIn) {
-      fetchCognitoAuthSession(context);
+      await fetchCognitoAuthSession(context);
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -85,39 +108,63 @@ class _HomePageState extends State<HomePage> {
       List<dynamic> userGroups = decodeAccessToken(test);
 
       if (userGroups.contains('livreur')) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LivreurPage()),
-        );
+        _navigateWithFade(context, const LivreurPage());
       } else if (userGroups.contains('admin')) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminPage()),
-        );
+        _navigateWithFade(context, const Dashboard());
       } else {
+        setState(() {
+          _isLoading = false;
+        });
       }
     } on AuthException catch (e) {
       safePrint('Error retrieving auth session: ${e.message}');
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _navigateWithFade(BuildContext context, Widget page) {
+    _controller!.forward();
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child,) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
+            if (_isLoading)
+              const CircularProgressIndicator()  // Affichage d'attente
+            else
+              const Text("Erreur lors de la récupération des informations."),
           ],
         ),
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
 }
 
-
+// Page pour les livreurs
 class LivreurPage extends StatelessWidget {
   const LivreurPage({super.key});
 
@@ -125,24 +172,18 @@ class LivreurPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Page Livreur')),
-      body: const Center(
-        child: Text('Bienvenue sur la page Livreur!'),
+      body: Center(
+        child: Column(
+          children: [
+            const Text('Bienvenue sur la page Livreur!'),
+            ElevatedButton( onPressed: () { signOutCurrentUser(); },
+              child: const Text("Deco"))
+          ],
+        ),
       ),
     );
   }
 }
 
+// Page pour les admins
 
-class AdminPage extends StatelessWidget {
-  const AdminPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Page Admin')),
-      body: const Center(
-        child: Text('Bienvenue sur la page Admin!'),
-      ),
-    );
-  }
-}
