@@ -74,36 +74,23 @@ class _CreateLivreurPageState extends State<CreateLivreurPage> {
     }
   }
 
-
-
-  // Fonction pour ajouter l'utilisateur au groupe "livreur"
-  // Fonction pour ajouter l'utilisateur au groupe "livreur"
   Future<void> addUserToGroup(String username) async {
     try {
-      // Remplace par l'URL de l'API Gateway générée par AWS
       String apiUrl = 'https://ljgutu0567.execute-api.eu-west-3.amazonaws.com/dev/comptelivreur';
-
-      // Construire le corps de la requête
       var body = jsonEncode({
         'userName': username,
-        'userPoolId': "eu-west-3_aAqp0e3T9"// L'username à ajouter au groupe livreur
+        'userPoolId': "eu-west-3_aAqp0e3T9"
       });
 
-      // Faire la requête POST à l'API Gateway pour ajouter l'utilisateur au groupe
       var response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
-
-      // Vérification de la réponse
-      if (response.statusCode == 200) {
-      } else {
-      }
     } catch (e) {
+      // Gérer les erreurs ici
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -111,35 +98,56 @@ class _CreateLivreurPageState extends State<CreateLivreurPage> {
       appBar: AppBar(
         title: const Text('Créer un compte livreur'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _firstNameController,
-              decoration: const InputDecoration(labelText: 'Prénom'),
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          constraints: const BoxConstraints(
+            minWidth: 300, // Taille minimum
+            maxWidth: 600, // Taille maximum
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white, // Couleur de fond du formulaire
+            borderRadius: BorderRadius.circular(10.0), // Bordures arrondies
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3), // Ombre légère
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3), // Position de l'ombre
+              ),
+            ],
+          ),
+          child: Form(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _firstNameController,
+                  decoration: const InputDecoration(labelText: 'Prénom'),
+                ),
+                TextField(
+                  controller: _lastNameController,
+                  decoration: const InputDecoration(labelText: 'Nom'),
+                ),
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                ),
+                TextField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Mot de passe'),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 20),
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                  onPressed: signUpLivreur,
+                  child: const Text('Créer le compte livreur'),
+                ),
+              ],
             ),
-            TextField(
-              controller: _lastNameController,
-              decoration: const InputDecoration(labelText: 'Nom'),
-            ),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Mot de passe'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-              onPressed: signUpLivreur,
-              child: const Text('Créer le compte livreur'),
-            ),
-          ],
+          ),
         ),
       ),
     );
