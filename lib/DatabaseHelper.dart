@@ -108,4 +108,14 @@ class DatabaseHelper {
     final db = await database;
     return await db.query('orders');
   }
+
+  Future<List<Map<String, dynamic>>> getOrdersByUserId(int userId) async {
+    final db = await database;
+    return await db.query(
+      'orders',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+
 }

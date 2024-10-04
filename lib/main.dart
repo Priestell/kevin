@@ -1,13 +1,15 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:kevin/livreur/dashboard_livreur.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'admin/dashboard.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'admin/dashboard_admin.dart';
 import 'amplify_outputs.dart';
 
 Future<void> main() async {
@@ -21,6 +23,10 @@ Future<void> main() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+  }
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+    var path = 'my_web_web.db';// Enregistrer l'implémentation web
   }
 
 }
@@ -117,9 +123,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       List<dynamic> userGroups = decodeAccessToken(test);
 
       if (userGroups.contains('livreur')) {
-        _navigateWithFade(context, const LivreurPage());
+        _navigateWithFade(context, const LivreurMapPage());
       } else if (userGroups.contains('admin')) {
-        _navigateWithFade(context, const Dashboard());
+        _navigateWithFade(context, const Dashboard_Livreur());
       } else {
         setState(() {
           _isLoading = false;
@@ -173,26 +179,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 }
 
-// Page pour les livreurs
-class LivreurPage extends StatelessWidget {
-  const LivreurPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Page Livreur')),
-      body: Center(
-        child: Column(
-          children: [
-            const Text('Bienvenue sur la page Livreur!'),
-            ElevatedButton( onPressed: () { signOutCurrentUser(); },
-              child: const Text("Deco"))
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // Page pour les admins
 

@@ -33,14 +33,14 @@ class FadeRoute extends PageRouteBuilder {
   );
 }
 
-class Dashboard extends StatefulWidget {
-  const Dashboard({super.key});
+class Dashboard_Livreur extends StatefulWidget {
+  const Dashboard_Livreur({super.key});
 
   @override
-  _DashboardState createState() => _DashboardState();
+  _Dashboard_LivreurState createState() => _Dashboard_LivreurState();
 }
 
-class _DashboardState extends State<Dashboard> {
+class _Dashboard_LivreurState extends State<Dashboard_Livreur> {
   List<Map<String, dynamic>> users = [];
   List<Map<String, dynamic>> orders = [];
   Map<int, bool> _isHovering = {};
